@@ -75,20 +75,20 @@ function whereNodeToSql(node: WhereNode | WhereLeaf): string {
 // --- 配置（JSON）→ 可执行 SQL ---
 function jsonToSql(config: ConfigRoot): string {
   const data = config.config.defaults.arg0.data;
-  
+
   // 构建 SELECT 子句
   const selectParts = data.columns.map(col => `${col.expression} AS ${col.alias}`).join(', ');
-  
+
   // 构建 FROM 子句
   const fromPart = `FROM ${data.tableName}`;
-  
+
   // 构建 WHERE 子句（若存在）
   let wherePart = '';
   if (data.whereCondition) {
     const whereSql = whereNodeToSql(data.whereCondition);
     wherePart = `WHERE ${whereSql}`;
   }
-  
+
   return `SELECT ${selectParts}\n${fromPart}\n${wherePart}`.trim();
 }
 
@@ -97,7 +97,7 @@ function sqlToJson(sql: string): ConfigRoot {
   // 提取 SELECT 字段列表（支持多行）
   const selectMatch = sql.match(/SELECT\s+([\s\S]+?)\s+FROM/i);
   if (!selectMatch) throw new Error('SELECT 语句格式无效');
-  
+
   const columnDefs = selectMatch[1].split(',').map(s => s.trim());
   const columns: Column[] = [];
   for (const def of columnDefs) {
@@ -133,7 +133,7 @@ function sqlToJson(sql: string): ConfigRoot {
     if (tokens.length >= 3) {
       const key = tokens[0];
       const op = tokens[1].toUpperCase();
-      let value = tokens.slice(2).join(' ').replace(/^['"]|['"]$/g, '');
+      let value: any = tokens.slice(2).join(' ').replace(/^['"]|['"]$/g, '');
 
       // 将 SQL 操作符映射到内部枚举类型
       const typeMap: Record<string, WhereLeaf['type']> = {

@@ -13,16 +13,20 @@ const sysMessages = [
 【强制流程】
 用户请求 → 必须严格按以下步骤执行：
 
-Step1：调用 convert_to_sql
+Step1：调用 nl_to_config
 - 输入：用户自然语言
+- 输出：json配置
+
+Step2：调用 convert_sql
+- 输入：Step1输出的json配置
 - 输出：标准 SQL
 
-Step2：调用 execute_sql
+Step3：调用 execute_sql
 - 输入：上一步生成的 SQL
 - 输出：数据库查询结果（CSV）
 
 【工具使用规则】
-- 不允许跳过 convert_to_sql
+- 不允许跳过 convert_sql
 - 不允许直接调用 execute_sql（除非已经有SQL）
 - 必须按顺序调用工具
 - 如果没有工具调用，视为错误

@@ -53,9 +53,7 @@ export async function runAgent(userInput: string) {
 
     console.log("🧠 调用工具:", name, args);
 
-    const result = await (toolImpl as any)[name](
-      args.sql || args.query
-    );
+    const result = await (toolImpl as any)[name](args);
 
     // 👇 把结果喂回模型（关键）
     messages.push(res);
