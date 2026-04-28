@@ -5,8 +5,11 @@ import { Command } from 'commander';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 
-dotenv.config({ path: './data/.env' });
+import path from 'path';
 
+dotenv.config({
+  path: path.resolve(__dirname, '../data/.env')
+});
 const config = {
   server: 'sqlserver',
   port: 1433,
@@ -53,10 +56,10 @@ async function main() {
     // Generate CSV
     const rows = result.recordset;
     const keys = Object.keys(rows[0]);
-    
+
     // Header
     let csv = keys.map(k => `"${k}"`).join(',');
-    
+
     // Rows
     for (const row of rows) {
       const values = keys.map(key => {
@@ -85,7 +88,8 @@ async function main() {
     writeFileSync(outputPath, csv);
     console.log(`✅ CSV saved to: ${outputPath}`);
     console.log(`   → ${rows.length} rows written`);
-  } catch (err) {
+    console.log(JSON.stringify(result.recordset));
+  } catch (err: any) {
     console.error(`❌ Execution failed: ${err.message}`);
     if (err.lineNumber) {
       console.error(`   at line ${err.lineNumber}, column ${err.columnNumber}`);

@@ -1,39 +1,18 @@
-import { client } from '../ai/llm'
-import { aiTools } from '../ai/tools'
-import { sqliteTool } from '../tools/sqlite.tool'
+import { callLLM } from '../ai/llm';
+import { tools } from '../ai/tools';
 
-export async function runAgent(input: string) {
-  const res = await client.chat.completions.create({
-    model: 'qwen-plus',
-    messages: [
-      {
-        role: 'system',
-        content: `
-你是一个数据库助手：
-- 所有涉及数据查询的问题，必须使用 sqlite_query
-- 不要直接编造数据
-`
-      },
-      {
-        role: 'user',
-        content: input
-      }
-    ],
-    tools: aiTools
-  })
+export async function agent(userInput: string) {
+  console.log("👤 用户输入:", userInput);
 
-  const msg = res.choices[0].message
+  // Step1：生成SQL（带RAG）
+  const sql = await callLLM(userInput);
 
-  const call = msg.tool_calls?.[0]
+  console.log("🧠 生成SQL:", sql);
 
-  if (call && call.type === 'function') {
-    const fn = call.function
-    const args = JSON.parse(fn.arguments)
+  // Step2：执行SQL
+  const result = await tools.executeSQL(sql);
 
-    if (fn.name === 'sqlite_query') {
-      return await sqliteTool.run(args)
-    }
-  }
+  console.log("📊 查询结果:", result);
 
-  return msg.content
+  return result;
 }

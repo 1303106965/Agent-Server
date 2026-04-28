@@ -1,17 +1,8 @@
-import express from 'express'
-import { runAgent } from './agent/agent'
+import { agent } from './agent/agent';
 
-const app = express()
-app.use(express.json())
+async function main() {
+  const result = await agent("查询二班学生");
+  console.log("\n✅ 最终结果:\n", result);
+}
 
-app.post('/chat', async (req, res) => {
-  const { message } = req.body
-
-  const result = await runAgent(message)
-
-  res.json(result)
-})
-
-app.listen(3000, () => {
-  console.log('http://localhost:3000')
-})
+main();
