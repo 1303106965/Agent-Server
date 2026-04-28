@@ -4,7 +4,6 @@ import * as dotenv from 'dotenv';
 import { Command } from 'commander';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
-
 import path from 'path';
 
 dotenv.config({

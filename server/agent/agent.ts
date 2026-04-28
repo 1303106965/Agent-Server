@@ -1,40 +1,69 @@
 import { callLLM } from "../ai/llm";
-import { tools } from "../ai/tools";
-import { runSqlWorkflow } from "./sqlWorkflow";
+import { tools, toolImpl } from "../ai/tools";
+import { exec } from "child_process";
+import sysMessages from './messages'
+/**
+ * 执行SQL（调用你现有的 run-and-csv.ts）
+ */
+function executeSQL(sql: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const safeSql = sql.replace(/"/g, '\\"');
 
+    const cmd = `npx tsx server/tools/run-and-csv.ts --sql "${safeSql}"`;
+
+    console.log("👉 执行SQL命令:", cmd);
+
+    exec(cmd, (err: any, stdout: string, stderr: string) => {
+      if (err) {
+        console.error("❌ SQL执行失败:", stderr);
+        return reject(stderr);
+      }
+      resolve(stdout);
+    });
+  });
+}
+
+/**
+ * 核心 Agent
+ */
 export async function runAgent(userInput: string) {
   const messages = [
-    {
-      role: "system",
-      content: `
-你是数据库智能助手。
-
-如果用户涉及数据查询：
-必须调用 sql_workflow 工具。
-
-禁止直接返回SQL。
-禁止编造数据。
-`
-    },
+    ...sysMessages,
     {
       role: "user",
       content: userInput
     }
-  ];
+  ]
 
-  const res = await callLLM(messages, tools);
+  for (let i = 0; i < 3; i++) {
+    const res = await callLLM(messages, tools);
 
-  const toolCall =
-    res.tool_calls?.[0] ||
-    (res.function_call && { function: res.function_call });
+    console.log("👉 LLM返回:", res);
 
-  if (toolCall) {
+    const toolCall =
+      res.tool_calls?.[0] ||
+      (res.function_call && { function: res.function_call });
+
+    if (!toolCall) {
+      return res.content;
+    }
+
+    const name = toolCall.function.name as keyof typeof toolImpl;
     const args = JSON.parse(toolCall.function.arguments);
 
-    if (toolCall.function.name === "sql_workflow") {
-      return await runSqlWorkflow(args.query);
-    }
+    console.log("🧠 调用工具:", name, args);
+
+    const result = await (toolImpl as any)[name](
+      args.sql || args.query
+    );
+
+    // 👇 把结果喂回模型（关键）
+    messages.push(res);
+    messages.push({
+      role: "tool",
+      content: result
+    });
   }
 
-  return res.content;
+  return "❌ 执行失败";
 }
