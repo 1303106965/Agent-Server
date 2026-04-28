@@ -1,18 +1,40 @@
-import { callLLM } from '../ai/llm';
-import { tools } from '../ai/tools';
+import { callLLM } from "../ai/llm";
+import { tools } from "../ai/tools";
+import { runSqlWorkflow } from "./sqlWorkflow";
 
-export async function agent(userInput: string) {
-  console.log("👤 用户输入:", userInput);
+export async function runAgent(userInput: string) {
+  const messages = [
+    {
+      role: "system",
+      content: `
+你是数据库智能助手。
 
-  // Step1：生成SQL（带RAG）
-  const sql = await callLLM(userInput);
+如果用户涉及数据查询：
+必须调用 sql_workflow 工具。
 
-  console.log("🧠 生成SQL:", sql);
+禁止直接返回SQL。
+禁止编造数据。
+`
+    },
+    {
+      role: "user",
+      content: userInput
+    }
+  ];
 
-  // Step2：执行SQL
-  const result = await tools.executeSQL(sql);
+  const res = await callLLM(messages, tools);
 
-  console.log("📊 查询结果:", result);
+  const toolCall =
+    res.tool_calls?.[0] ||
+    (res.function_call && { function: res.function_call });
 
-  return result;
+  if (toolCall) {
+    const args = JSON.parse(toolCall.function.arguments);
+
+    if (toolCall.function.name === "sql_workflow") {
+      return await runSqlWorkflow(args.query);
+    }
+  }
+
+  return res.content;
 }

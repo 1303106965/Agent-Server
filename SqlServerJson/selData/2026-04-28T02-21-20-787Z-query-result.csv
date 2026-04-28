@@ -1,0 +1,4 @@
+"id","name","gender","age","class_name","score","created_at"
+1,"张三","男",18,"一班",85.5,Tue Mar 31 2026 17:06:39 GMT+0800 (China Standard Time)
+4,"赵六","女",18,"二班",88.5,Tue Mar 31 2026 17:06:39 GMT+0800 (China Standard Time)
+6,"孙八","女",18,"三班",95,Tue Mar 31 2026 17:06:39 GMT+0800 (China Standard Time)

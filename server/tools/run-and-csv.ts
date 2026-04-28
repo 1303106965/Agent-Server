@@ -11,7 +11,7 @@ dotenv.config({
   path: path.resolve(__dirname, '../data/.env')
 });
 const config = {
-  server: 'sqlserver',
+  server: '43.156.73.183',
   port: 1433,
   database: 'sample',
   user: 'sa',
@@ -47,7 +47,7 @@ async function main() {
   try {
     await sql.connect(config);
     const result = await sql.query(opts.sql);
-
+    console.log('data:', JSON.stringify(result.recordset));
     if (!result.recordset || result.recordset.length === 0) {
       console.log('No data returned.');
       return;
@@ -88,7 +88,6 @@ async function main() {
     writeFileSync(outputPath, csv);
     console.log(`✅ CSV saved to: ${outputPath}`);
     console.log(`   → ${rows.length} rows written`);
-    console.log(JSON.stringify(result.recordset));
   } catch (err: any) {
     console.error(`❌ Execution failed: ${err.message}`);
     if (err.lineNumber) {

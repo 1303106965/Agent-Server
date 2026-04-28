@@ -16,7 +16,8 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mssql": "^12.2.1",
-    "openai": "^6.34.0"
+    "openai": "^6.34.0",
+    "zhipuai": "^2.0.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
