@@ -1,10 +1,10 @@
 import { callLLM } from "../ai/llm";
 
-export async function nlToConfig(nl: string) {
+export async function nlToConfig(args: { query: string }) {
   const prompt = `
 你是一个SQL配置生成器。
 
-请把用户的自然语言转换成如下JSON结构（严格按照格式）：
+请把用户的自然语言转换成如下JSON结构（严格输出JSON，不要解释）：
 
 {
   "config": {
@@ -34,22 +34,19 @@ export async function nlToConfig(nl: string) {
 }
 
 要求：
-1. 必须输出 JSON
+1. 必须返回 JSON
 2. 不要解释
-3. 字段必须符合 schema
-4. type 必须是 EQ/GT/LT 等
+3. type 只能是 EQ / GT / LT / LIKE / IN 等
+4. 不允许编造字段
 
 用户输入：
-${nl}
+${args.query}
 `;
 
-  const res = await callLLM([
-    { role: "user", content: prompt }
-  ], []);
+  const res = await callLLM(
+    [{ role: "user", content: prompt }],
+    [] // ❗这里不要 tools
+  );
 
-  try {
-    return JSON.parse(res.content);
-  } catch (e) {
-    throw new Error("LLM返回不是合法JSON：" + res.content);
-  }
+  return res.content; // ⚠️ 直接返回 JSON字符串
 }
