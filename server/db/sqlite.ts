@@ -1,19 +1,14 @@
-import Database from 'better-sqlite3'
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
 
-export const db = new Database('data.db')
+/**
+ * SQLite 数据库实例
+ */
+export async function getDb() {
 
-// 初始化
-db.exec(`
-CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY,
-  name TEXT,
-  age INTEGER
-);
-`)
+  return open({
+    filename: "./data.db",
+    driver: sqlite3.Database
+  });
 
-// 初始化数据（避免重复插）
-const row = db.prepare('SELECT * FROM users WHERE name=?').get('张三')
-
-if (!row) {
-  db.prepare('INSERT INTO users (name, age) VALUES (?, ?)').run('张三', 18)
 }
