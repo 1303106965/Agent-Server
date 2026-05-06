@@ -5,6 +5,7 @@ import { Command } from 'commander';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import path from 'path';
+import { readFileSync } from 'fs';
 
 dotenv.config({
   path: path.resolve(__dirname, '../data/.env')
@@ -24,15 +25,45 @@ program.name('run-and-csv').description('Execute SQL and save result as CSV');
 
 program
   .option('-s, --sql <sql>', 'T-SQL to execute', '')
-  .option('--output <path>', 'Output CSV file path (optional)', '');
+  .option('--output <path>', 'Output CSV file path (optional)', '')
+  .option(
+    '--file <path>',
+    'SQL file path'
+  );
 
 program.parse();
 
 const opts = program.opts();
 
-if (!opts.sql?.trim()) {
-  console.error('❌ Error: --sql is required');
-  console.log('Usage: npx tsx tools/run-and-csv.ts --sql "SELECT * FROM Products" [--output ./output.csv]');
+let finalSql = opts.sql;
+
+/**
+ * 如果传入了 --file
+ * 则读取 SQL 文件
+ */
+if (opts.file) {
+  finalSql = readFileSync(
+    opts.file,
+    'utf-8'
+  );
+}
+
+/**
+ * 防止 SQL 为空
+ */
+if (!finalSql?.trim()) {
+  console.error('❌ Error: SQL is required');
+
+  console.log(`
+    支持两种方式：
+
+    1. 直接传 SQL:
+    npx tsx run-and-csv.ts --sql "SELECT * FROM students"
+
+    2. 传 SQL 文件:
+    npx tsx run-and-csv.ts --file ./temp.sql
+    `);
+
   process.exit(1);
 }
 

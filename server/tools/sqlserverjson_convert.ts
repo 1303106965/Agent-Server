@@ -2,7 +2,41 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { Command } from 'commander';
+/**
+ * 生成时间戳
+ */
+function getTimestamp() {
+  return new Date()
+    .toISOString()
+    .replace(/[:.]/g, '-');
+}
 
+/**
+ * 保存文件
+ */
+function saveFile(
+  dir: string,
+  filename: string,
+  content: string
+) {
+
+  // 自动创建目录
+  require('fs').mkdirSync(dir, {
+    recursive: true
+  });
+
+  // 最终路径
+  const filePath = join(dir, filename);
+
+  // 写入文件
+  writeFileSync(
+    filePath,
+    content,
+    'utf-8'
+  );
+
+  return filePath;
+}
 // --- 类型定义 ---
 type Column = {
   expression: string;
@@ -189,7 +223,20 @@ program
     try {
       const json = JSON.parse(readFileSync(opts.file, 'utf8')) as ConfigRoot;
       const sql = jsonToSql(json);
+      /**
+     * 保存 SQL 文件
+     */
+      const now = getTimestamp();
+      const sqlPath = saveFile(
+        'SqlServerJson/selSql',
+        `${now}-query.sql`,
+        sql
+      );
+
+      console.log("✅ SQL 已生成:");
       console.log(sql);
+
+      console.log("\n📁 SQL 文件已保存:");
     } catch (e) {
       console.error('❌ JSON → SQL 转换失败:', (e as Error).message);
       process.exit(1);
@@ -203,7 +250,28 @@ program
   .action((opts) => {
     try {
       const config = sqlToJson(opts.sql);
-      console.log(JSON.stringify(config, null, 2));
+
+      /**
+       * JSON 字符串
+       */
+      const jsonStr = JSON.stringify(config, null, 2);
+
+      /**
+       * 保存 JSON 文件
+       */
+      const now = getTimestamp();
+
+      const jsonPath = saveFile(
+        'SqlServerJson/selSchema',
+        `${now}-schema.json`,
+        jsonStr
+      );
+
+      console.log("✅ JSON 配置已生成:");
+      console.log(jsonStr);
+
+      console.log("\n📁 JSON 文件已保存:");
+      console.log(jsonPath);
     } catch (e) {
       console.error('❌ SQL → JSON 转换失败:', (e as Error).message);
       process.exit(1);
