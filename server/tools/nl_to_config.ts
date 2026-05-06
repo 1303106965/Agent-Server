@@ -13,7 +13,7 @@ export async function nlToConfig(args: { query: string }) {
           "tableName": "students",
           "dbId": "sampledb",
           "columns": [
-            { "expression": "*", "alias": "*" }
+            { "expression": "字段名", "alias": "字段别名" }
           ],
           "whereCondition": {
             "children": [

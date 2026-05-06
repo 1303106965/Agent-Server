@@ -8,7 +8,7 @@
           "columns": [
             {
               "expression": "name",
-              "alias": "name"
+              "alias": "姓名"
             }
           ],
           "whereCondition": {
