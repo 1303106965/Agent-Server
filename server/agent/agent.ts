@@ -1,97 +1,192 @@
-import { callLLM } from "../ai/llm";
-import { tools, toolImpl } from "../ai/tools";
+import { nlToDSL } from "../planner/nl-to-dsl";
+import path from "path";
+import { dslToSqlServerJson } from "../compiler/dsl-to-json";
+
 import { exec } from "child_process";
-import sysMessages from './messages';
-import { searchSchema } from "../rag/vector-search";
+
+import fs from "fs";
 
 /**
- * 核心 Agent
+ * Agent Runtime
  */
-export async function runAgent(userInput: string) {
+export async function runAgent( userInput: string ) {
   /**
- * 1. RAG 检索相关 schema
- */
-  const ragResult =
-    await searchSchema(userInput);
+   * Session ID
+   */
+  const sessionId =
+    new Date()
+      .toISOString()
+      .replace(/[:.]/g, "-");
 
+  /**
+   * Session目录
+   */
+  const sessionDir =
+    path.join(
+      "SqlServerJson",
+      "sessions",
+      sessionId
+    );
+
+  /**
+   * 创建目录
+   */
+  fs.mkdirSync(
+    sessionDir,
+    {
+      recursive: true
+    }
+  );
   console.log(
-    "👉 RAG 检索结果:"
+    "\n===================="
   );
 
   console.log(
-    JSON.stringify(
-      ragResult,
-      null,
-      2
-    )
+    "🚀 Agent启动"
   );
 
-  /**
-  * 2. 动态生成 RAG Prompt
-  */
-  const ragPrompt = `
-数据库相关字段：
-
-${ragResult.map(item => `
-表: ${item.table}
-
-字段: ${item.column}
-
-描述: ${item.description}
-`).join("\n")}
-
-请严格使用以上字段生成SQL。
-
-禁止编造字段。
-`;
+  console.log("====================\n");
 
   /**
-  * 3. 构建 messages
-  */
-  const messages = [
+   * Step1
+   * NL -> DSL
+   */
+  console.log("🧠 Step1: NL -> DSL");
 
-    ...sysMessages,
+  const dsl = await nlToDSL(userInput);
+  console.log( JSON.stringify( dsl, null, 2 ) );
+  
+  /**
+   * Step2
+   * DSL -> sqlserverjson
+   */
+  console.log("\n⚙️ Step2: DSL -> sqlserverjson");
 
-    {
-      role: "system",
+  const config = dslToSqlServerJson(dsl);
 
-      content: ragPrompt
-    },
+  fs.writeFileSync( 
+    path.join( sessionDir, "config.json" ),
+    JSON.stringify( config, null, 2 )
+  );
+  fs.writeFileSync(
+    path.join(sessionDir,"input.txt"),
+    userInput
+  );
+  /**
+   * Step3
+   * 保存 config
+   */
+  console.log("\n💾 Step3: 保存 config");
 
-    {
-      role: "user",
+  const configPath = "temp_config.json";
 
-      content: userInput
+  fs.writeFileSync( configPath, JSON.stringify( config, null, 2 ) );
+
+  console.log("✅ config已保存");
+
+  /**
+   * Step4
+   * config -> SQL
+   */
+  console.log("\n🔄 Step4: config -> SQL");
+
+  const sql = await convertToSQL( configPath );
+
+  console.log( sql );
+  const sqlPath = path.join( sessionDir,"query.sql" );
+
+  fs.writeFileSync( sqlPath, sql );
+  /**
+   * Step5
+   * 执行SQL
+   */
+  console.log( "\n📊 Step5: 执行SQL" );
+
+  const result = await executeSQL(sql);
+
+  console.log(result);
+  const csvPath = path.join( sessionDir, "result.csv" );
+  console.log( "\n✅ Agent执行完成" );
+
+  return result;
+}
+
+/**
+ * config -> SQL
+ */
+function convertToSQL(
+  file: string
+): Promise<string> {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const cmd = ` npx tsx server/tools/sqlserverjson_convert.ts to-sql --file ${file}`;
+
+      console.log("👉 执行:");
+
+      console.log(cmd);
+
+      exec(
+        cmd,
+        (
+          err: any,
+          stdout: string,
+          stderr: string
+        ) => {
+          if (err) {
+            console.error(stderr);
+            return reject(stderr);
+          }
+
+          /**
+           * 提取 SQL
+           */
+          const sql = stdout.trim();
+
+          resolve(sql);
+        }
+      );
     }
-  ];
+  );
+}
 
-  for (let i = 0; i < 3; i++) {
-    const res = await callLLM(messages, tools);
+/**
+ * 执行 SQL
+ */
+function executeSQL(
+  sql: string
+): Promise<string> {
 
-    console.log("👉 LLM返回:", res);
+  return new Promise(
+    (resolve, reject) => {
+      /**
+       * 转义双引号
+       */
+      const safeSql = sql.replace(/"/g,'\\"');
+      console.log(sql,safeSql,'😁');
+      
+      const cmd = `npx tsx server/tools/run-and-csv.ts --sql "${safeSql}"`;
 
-    const toolCall =
-      res.tool_calls?.[0] ||
-      (res.function_call && { function: res.function_call });
+      console.log("👉 执行:");
 
-    if (!toolCall) {
-      return res.content;
+      console.log(cmd);
+
+      exec(
+        cmd,
+        (
+          err: any,
+          stdout: string,
+          stderr: string
+        ) => {
+          if (err) {
+            console.error(stderr);
+            return reject(stderr);
+          }
+
+          resolve(stdout);
+        }
+      );
     }
-
-    const name = toolCall.function.name as keyof typeof toolImpl;
-    const args = JSON.parse(toolCall.function.arguments);
-
-    console.log("🧠 调用工具:", name, args);
-
-    const result = await (toolImpl as any)[name](args);
-
-    // 👇 把结果喂回模型（关键）
-    messages.push(res);
-    messages.push({
-      role: "tool",
-      content: result
-    });
-  }
-
-  return "❌ 执行失败";
+  );
 }

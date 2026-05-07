@@ -7,12 +7,12 @@
           "dbId": "sampledb",
           "columns": [
             {
-              "expression": "姓名",
-              "alias": "姓名"
+              "expression": "name",
+              "alias": "name"
             },
             {
-              "expression": "性别",
-              "alias": "性别"
+              "expression": "gender",
+              "alias": "gender"
             }
           ],
           "whereCondition": {
