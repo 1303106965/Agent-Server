@@ -1,0 +1,15 @@
+{
+  "intent": "select",
+  "table": "students",
+  "columns": [
+    "name",
+    "gender"
+  ],
+  "where": [
+    {
+      "field": "age",
+      "operator": ">=",
+      "value": 19
+    }
+  ]
+}

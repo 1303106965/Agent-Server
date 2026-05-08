@@ -6,23 +6,18 @@ import dotenv from "dotenv";
  * 加载 .env
  */
 dotenv.config({
-  path: path.resolve(
-    process.cwd(),
-    "server/data/.env"
-  )
+  path: path.resolve(process.cwd(), "server/data/.env"),
 });
 
 /**
  * 智谱 embedding API
  */
-const EMBEDDING_URL =
-  "https://open.bigmodel.cn/api/paas/v4/embeddings";
+const EMBEDDING_URL = "https://open.bigmodel.cn/api/paas/v4/embeddings";
 
 /**
  * 获取文本 embedding
  */
 export async function getEmbedding(text: string) {
-
   console.log("👉 正在生成 embedding:");
   console.log(text);
 
@@ -32,15 +27,15 @@ export async function getEmbedding(text: string) {
     {
       model: "embedding-3",
 
-      input: text
+      input: text,
     },
 
     {
       headers: {
         Authorization: `Bearer ${process.env.ZHIPU_API_KEY}`,
 
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     }
   );
 
