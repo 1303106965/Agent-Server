@@ -1,0 +1,33 @@
+{
+  "config": {
+    "defaults": {
+      "arg0": {
+        "data": {
+          "tableName": "students",
+          "dbId": "sampledb",
+          "columns": [
+            {
+              "expression": "name",
+              "alias": "name"
+            },
+            {
+              "expression": "gender",
+              "alias": "gender"
+            }
+          ],
+          "whereCondition": {
+            "children": [
+              {
+                "key": "age",
+                "type": "GE",
+                "value": 19
+              }
+            ],
+            "operateType": "AND"
+          }
+        }
+      }
+    },
+    "fn": "selectSingleTable"
+  }
+}

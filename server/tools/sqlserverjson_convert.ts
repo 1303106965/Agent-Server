@@ -233,10 +233,10 @@ program
         sql
       );
 
-      console.log("✅ SQL 已生成:");
+      console.error("✅ SQL 已生成:");
       console.log(sql);
 
-      console.log("\n📁 SQL 文件已保存:");
+      console.error("\n📁 SQL 文件已保存:");
     } catch (e) {
       console.error('❌ JSON → SQL 转换失败:', (e as Error).message);
       process.exit(1);

@@ -37,13 +37,9 @@ export async function runAgent( userInput: string ) {
       recursive: true
     }
   );
-  console.log(
-    "\n===================="
-  );
+  console.log("\n====================");
 
-  console.log(
-    "🚀 Agent启动"
-  );
+  console.log("🚀 Agent启动");
 
   console.log("====================\n");
 
@@ -164,8 +160,6 @@ function executeSQL(
        * 转义双引号
        */
       const safeSql = sql.replace(/"/g,'\\"');
-      console.log(sql,safeSql,'😁');
-      
       const cmd = `npx tsx server/tools/run-and-csv.ts --sql "${safeSql}"`;
 
       console.log("👉 执行:");
