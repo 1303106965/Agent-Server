@@ -15,27 +15,12 @@ dotenv.config({
  * SQLServer配置
  */
 const config = {
-
-  server:
-    "43.156.73.183",
-
-  port:
-    1433,
-
-  database:
-    "sample",
-
-  user:
-    "sa",
-
-  password:
-    process.env
-      .SQLSERVER_PASSWORD,
-
-  options: {
-    trustServerCertificate:
-      true
-  }
+  server: "sqlserver",
+  port: 1433,
+  database: "sample",
+  user: "sa",
+  password:process.env.SQLSERVER_PASSWORD,
+  options: {trustServerCertificate: true}
 };
 
 /**
