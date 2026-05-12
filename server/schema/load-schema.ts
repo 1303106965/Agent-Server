@@ -15,7 +15,7 @@ dotenv.config({
  * SQLServer配置
  */
 const config = {
-  server: "sqlserver",
+  server: "43.156.73.183",
   port: 1433,
   database: "sample",
   user: "sa",
