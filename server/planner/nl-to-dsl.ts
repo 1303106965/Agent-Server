@@ -128,7 +128,7 @@ ${userInput}
 
   console.log("\n🧠 Planner Prompt:");
 
-  console.log(prompt);
+  // console.log(prompt);
 
   /**
    * 调用模型

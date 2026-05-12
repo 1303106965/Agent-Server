@@ -1,7 +1,7 @@
 import { nlToDSL } from "../planner/nl-to-dsl";
 import path from "path";
 import { dslToSqlServerJson } from "../compiler/dsl-to-json";
-
+// import {execute}
 import { exec } from "child_process";
 
 import fs from "fs";
